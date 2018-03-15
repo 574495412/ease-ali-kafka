@@ -1,0 +1,16 @@
+{
+  "name": "ease-ali-kafka",
+  "version": "0.0.1",
+  "description": "Aliyun MQ(Kafka) Node.js client helper based on node-rdkafka",
+  "author": "Chunlin Li",
+  "license": "MIT",
+  "homepage": "https://github.com/Chunlin-Li/ease-ali-kafka",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:Chunlin-Li/ease-ali-kafka.git"
+  },
+  "dependencies": {
+    "node-rdkafka": "2.2.3"
+  }
+}
