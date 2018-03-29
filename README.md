@@ -95,6 +95,10 @@ Kafka.subscribe(topic, function (data, commit, next) {
 })
 ```
 
+`data`: {Buffer} 收到的消息内容, Buffer 类型. 通过 `._metadata` 属性可以获取相关元数据   
+`commit`: {Function} 执行该函数则给 Kafka 发送消息成功消费的回执   
+`next`: {Function} 执行该函数则开始处理下一个消息. 否则即使有新的消息待处理, 也会等待当前消息处理完成才会处理下一个消息
+
 支持订阅多个不同的 topic.
 
 

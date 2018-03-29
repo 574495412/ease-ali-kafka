@@ -12,7 +12,7 @@ Kafka.init({
 });
 
 Kafka.subscribe(configs.topicName, function (data, commit, next) {
-  console.log('consume message', data);
+  console.log('consume message: ', data.toString(), data._metadata);
   commit();
   next();
 });

@@ -168,21 +168,26 @@ function getConsumer (topics) {
 
     // 使用 stream API, 避免消费节点被打爆
     stream.pipe(new Writable({
-      write: function (chunk, encoding, callback) { // 实现顺序同步处理, 避免被大量消息打爆
+      write: function (obj, encoding, callback) { // 实现顺序同步处理, 避免被大量消息打爆
         // 取出对应 topic 的 handler
-        let handler = subscribedTopics[chunk.topic];
+        let handler = subscribedTopics[obj.topic];
+
+        let metadata = {};
+        delete Object.assign(metadata, obj).value;
+        let message = obj.value;
+        Object.defineProperty(message, '_metadata', { value: metadata })
 
         if (handler.length === 1) { // 只传数据本身, 启动异步模式, 并自动完成读取和提交
-          setTimeout(errorHandler(handler.bind(null, chunk)), 0);
-          stream.consumer.commitMessage(chunk);
+          setTimeout(errorHandler(handler.bind(null, message)), 0);
+          stream.consumer.commitMessage(obj);
           callback();
         } else if (handler.length === 2) { // handler 只提供了 data, commit 两参数时, 提交的同时完成读取
-          errorHandler(handler.bind(null, chunk, function () {
-            stream.consumer.commitMessage(chunk);
+          errorHandler(handler.bind(null, message, function () {
+            stream.consumer.commitMessage(obj);
             callback();
           }));
         } else { // 参数按照 data, commit, next 处理. 控制权交由用户
-          errorHandler(handler.bind(null, chunk, () => stream.consumer.commitMessage(chunk), callback));
+          errorHandler(handler.bind(null, message, () => stream.consumer.commitMessage(obj), callback));
         }
       },
       objectMode: true
