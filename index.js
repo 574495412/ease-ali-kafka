@@ -59,7 +59,7 @@ exports.sendKafkaMessage = function (topic, content) {
         // 设定超时计时器
         let timeout = setTimeout(() => {
           delete producerWindow[key];
-          reject(new Error(`timeout: did not receive report in ${options.reportTimeout} ms`));
+          reject(new Error(`timeout: did not receive report in ${options.reportTimeout} ms, key: ${key}`));
         }, options.reportTimeout); // reportTimeout 内没有收到回执则超时
         // 注册 report 回调
         producerWindow[key] = function (report) {
