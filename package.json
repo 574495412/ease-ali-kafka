@@ -1,6 +1,6 @@
 {
   "name": "ease-ali-kafka",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Aliyun MQ(Kafka) Node.js client helper based on node-rdkafka",
   "author": "Chunlin Li",
   "license": "MIT",
