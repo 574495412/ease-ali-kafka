@@ -5,7 +5,8 @@
 */
 
 const Kafka = require('node-rdkafka');
-const crypto  =require('crypto');
+const crypto  = require('crypto');
+const pRetry = require('p-retry');
 const Writable = require('stream').Writable;
 
 let options = null;
@@ -19,7 +20,8 @@ let subscribedTopics = {};
  * @param opt.password - 阿里云公共帐号的密码, 即帐号的 secret 的后10位
  * @param opt.bootstrap - 阿里云 kafka 接入点. 请查看 https://help.aliyun.com/document_detail/52376.html
  * @param opt.consumerID - 阿里云MQ上配置的消费者ID, 对应 Kafka 中的 groupId 的概念. 一个服务应该使用一个唯一的 ConsumerID
- * @param opt.reportTimeout - 发送消息后, 等待回执的超时时间, 默认 10 秒
+ * @param opt.reportTimeout - 发送消息后, 等待回执的超时时间, 默认 3 秒
+ * @param opt.retries - 发送发生超时后的重试次数, 默认重试 2 次
  * @param opt.keyEncode
  * @param opt.producerPollInterval
  */
@@ -28,9 +30,10 @@ exports.init = function (opt) {
     return console.error('kafka has been initiated');
   }
   options = Object.assign({
-    reportTimeout: 10000,
+    reportTimeout: 3000,
     keyEncode: 'base64',
-    producerPollInterval: 200
+    producerPollInterval: 200,
+    retries: 2,
   }, opt);
 };
 
@@ -53,22 +56,26 @@ exports.sendKafkaMessage = function (topic, content) {
       }
       let key = crypto.createHash('md5').update(content).digest(options.keyEncode); // 计算 md5 作为 key
 
-      producer.produce(topic, -1, content, key); // 发送
-
-      return new Promise((resolve, reject) => {
-        // 设定超时计时器
-        let timeout = setTimeout(() => {
-          delete producerWindow[key];
-          reject(new Error(`timeout: did not receive report in ${options.reportTimeout} ms, key: ${key}`));
-        }, options.reportTimeout); // reportTimeout 内没有收到回执则超时
-        // 注册 report 回调
-        producerWindow[key] = function (report) {
-          clearTimeout(timeout); // 成功, 关闭超时计时器
-          resolve(report);
-        };
-      })
+      return pRetry(_send.bind(null, producer, topic, content, key), {retries: options.retries, minTimeout: 200});
     });
 };
+
+function _send(producer, topic, content, key) {
+  producer.produce(topic, -1, content, key); // 发送
+
+  return new Promise((resolve, reject) => {
+    // 设定超时计时器
+    let timeout = setTimeout(() => {
+      delete producerWindow[key];
+      reject(new Error(`timeout: did not receive report in ${options.reportTimeout} ms, key: ${key}`));
+    }, options.reportTimeout); // reportTimeout 内没有收到回执则超时
+    // 注册 report 回调
+    producerWindow[key] = function (report) {
+      clearTimeout(timeout); // 成功, 关闭超时计时器
+      resolve(report);
+    };
+  })
+}
 
 /**
  * 订阅topic

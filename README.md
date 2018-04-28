@@ -27,12 +27,14 @@ Kafka.init({
   password: '你的阿里云帐号 secret 后 10 位',
   // 如果不需要 consumer 则不用配置该参数
   consumerID: '在阿里云上配置的 consumer ID',
-  // 发送消息后, 等待回执的超时时间, 默认 10 秒
+  // 发送消息后, 等待回执的超时时间, 默认 3 秒
   reportTimeout: 3000,
   // 自动生成 key 的编码方式, 默认 base64, 支持 base64, hex 等
   keyEncode: 'base64',
   // 生产者轮询本地的时间, 默认 200ms
-  producerPollInterval: 200  
+  producerPollInterval: 200,
+  // 发送发生超时后的重试次数, 默认重试 2 次
+  retries: 2,
 });
 ```
 
@@ -54,7 +56,7 @@ return: `Promise<report>`
 `content`: {String|Object|Buffer} 要发送的内容, 可以直接写 Object.    
 `report`: {Object} 消息回执. 其中主要包含字段 `key`{Buffer}, `topic`{String}, `partition`{Number}, `offset`{Number}     
 
-如因网络问题, 发送后10秒内未收到回执, 则会报 timeout 错误.
+如因网络问题, 发送后3秒内未收到回执, 则会报 timeout 错误.
 
   
 #### 订阅并消费消息

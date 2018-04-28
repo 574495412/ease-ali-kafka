@@ -11,6 +11,7 @@
     "url": "git@github.com:Chunlin-Li/ease-ali-kafka.git"
   },
   "dependencies": {
-    "node-rdkafka": "2.2.3"
+    "node-rdkafka": "2.2.3",
+    "p-retry": "^2.0.0"
   }
 }
