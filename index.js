@@ -185,7 +185,7 @@ function getConsumer (topics) {
         Object.defineProperty(message, '_metadata', { value: metadata })
 
         if (handler.length === 1) { // 只传数据本身, 启动异步模式, 并自动完成读取和提交
-          setTimeout(errorHandler(handler.bind(null, message)), 0);
+          setTimeout(() => errorHandler(handler.bind(null, message)), 0);
           stream.consumer.commitMessage(obj);
           callback();
         } else if (handler.length === 2) { // handler 只提供了 data, commit 两参数时, 提交的同时完成读取
